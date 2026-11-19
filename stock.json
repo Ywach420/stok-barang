@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Keripik Tempe",
+    "stock": 1
+  },
+  {
+    "name": "Singkong Balado Basah",
+    "stock": 3
+  },
+  {
+    "name": "Basreng Asin",
+    "stock": 4
+  },
+  {
+    "name": "Kerupuk Seblak Kencur",
+    "stock": 2
+  },
+  {
+    "name": "Emping Melinjo Pedas",
+    "stock": 1
+  },
+  {
+    "name": "Keripik Ubi Ungu",
+    "stock": 1
+  },
+  {
+    "name": "Jagung Marning",
+    "stock": 1
+  },
+  {
+    "name": "Roti Bagelan Keju",
+    "stock": 1
+  },
+  {
+    "name": "Roti Bagelan Pandan",
+    "stock": 2
+  },
+  {
+    "name": "Popmie Kuah Pedes Dower",
+    "stock": 22
+  }
+]

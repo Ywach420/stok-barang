@@ -317,20 +317,32 @@ bot.onText(/^\/tambah (.+) (\d+)(?: (pcs|box|pack|dus|karton|botol|bungkus))?$/i
 
 bot.onText(/^\/hapus (.+)$/i, (msg, match) => {
 
-    const productName = match[1].trim();
+    const productName = match[1].trim().toLowerCase();
 
-    const index = products.findIndex(
+    // Cari exact match dulu
+    let index = products.findIndex(
         product =>
-            product.name.toLowerCase() ===
-            productName.toLowerCase()
+            product.name.trim().toLowerCase() === productName
     );
+
+    // Kalau tidak ketemu, cari nama yang diawali dengan input
+    if (index === -1) {
+
+        index = products.findIndex(
+            product =>
+                product.name.trim().toLowerCase().startsWith(productName)
+        );
+
+    }
 
     if (index === -1) {
 
         return bot.sendMessage(
             msg.chat.id,
-            `❌ Barang "${productName}" tidak ditemukan.`
+            `❌ Barang "${match[1].trim()}" tidak ditemukan.\n\n` +
+            `💡 Gunakan /stock untuk melihat nama barang yang tersimpan.`
         );
+
     }
 
     const removedProduct = products[index];
@@ -344,8 +356,9 @@ bot.onText(/^\/hapus (.+)$/i, (msg, match) => {
         `🗑️ BARANG DIHAPUS\n\n` +
         `📦 ${removedProduct.name}\n` +
         `Stock terakhir : ${removedProduct.stock} ${removedProduct.unit}\n\n` +
-        `Barang sudah dihapus dari daftar stock.`
+        `✅ Barang sudah dihapus dari daftar stock.`
     );
+
 });
 
 // ========================================

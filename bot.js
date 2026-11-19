@@ -315,32 +315,33 @@ bot.onText(/^\/tambah (.+) (\d+)(?: (pcs|box|pack|dus|karton|botol|bungkus))?$/i
 // HAPUS BARANG
 // ========================================
 
-bot.onText(/^\/hapus (.+)$/i, (msg, match) => {
+bot.onText(/^\/hapus\s+(.+)$/i, (msg, match) => {
 
-    const productName = match[1].trim().toLowerCase();
+    let productName = match[1].trim();
 
-    // Cari exact match dulu
-    let index = products.findIndex(
-        product =>
-            product.name.trim().toLowerCase() === productName
-    );
+    // Bersihkan tanda "=" di akhir nama
+    productName = productName
+        .replace(/\s*=\s*$/, "")
+        .trim()
+        .toLowerCase();
 
-    // Kalau tidak ketemu, cari nama yang diawali dengan input
-    if (index === -1) {
+    const index = products.findIndex(product => {
 
-        index = products.findIndex(
-            product =>
-                product.name.trim().toLowerCase().startsWith(productName)
-        );
+        let savedName = product.name
+            .trim()
+            .replace(/\s*=\s*$/, "")
+            .trim()
+            .toLowerCase();
 
-    }
+        return savedName === productName;
+    });
 
     if (index === -1) {
 
         return bot.sendMessage(
             msg.chat.id,
             `❌ Barang "${match[1].trim()}" tidak ditemukan.\n\n` +
-            `💡 Gunakan /stock untuk melihat nama barang yang tersimpan.`
+            `💡 Coba cek daftar dengan /stock`
         );
 
     }

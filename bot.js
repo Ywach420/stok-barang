@@ -6,7 +6,7 @@ const fs = require("fs");
 const TOKEN = process.env.BOT_TOKEN;
 
 if (!TOKEN) {
-    console.error("BOT_TOKEN belum diisi di file .env");
+    console.error("❌ BOT_TOKEN belum diisi!");
     process.exit(1);
 }
 
@@ -16,21 +16,29 @@ const bot = new TelegramBot(TOKEN, {
 
 const DB_FILE = "stock.json";
 
+// ========================================
+// STOCK AWAL
+// ========================================
+
 const initialStock = [
-    { name: "Keripik Tempe", stock: 3 },
-    { name: "Singkong Balado Basah", stock: 3 },
-    { name: "Basreng Asin", stock: 4 },
-    { name: "Kerupuk Seblak Kencur", stock: 2 },
-    { name: "Emping Melinjo Pedas", stock: 1 },
-    { name: "Keripik Ubi Ungu", stock: 1 },
-    { name: "Jagung Marning", stock: 1 },
-    { name: "Roti Bagelan Keju", stock: 1 },
-    { name: "Roti Bagelan Pandan", stock: 2 },
-    { name: "Popmie Kuah Pedes Dower", stock: 22 }
+    { name: "POPMIE", stock: 0, unit: "pcs" },
+    { name: "SARI GANDUM COKLAT", stock: 6, unit: "pcs" },
+    { name: "MOMOGI MINI", stock: 1, unit: "box" },
+    { name: "MAKARONI NGEHE", stock: 0, unit: "pcs" },
+    { name: "USUS NGEHE", stock: 3, unit: "pcs" },
+    { name: "SAUS ABC EXTRA PEDAS 275ml", stock: 4, unit: "pcs" },
+    { name: "SAUS INDOFOOD EXTRA PEDAS 275ml", stock: 5, unit: "pcs" },
+    { name: "SAUS BELIBIS EXTRA PEDAS 235ml", stock: 3, unit: "pcs" }
 ];
 
+// ========================================
+// DATABASE
+// ========================================
+
 function loadStock() {
+
     if (!fs.existsSync(DB_FILE)) {
+
         fs.writeFileSync(
             DB_FILE,
             JSON.stringify(initialStock, null, 2)
@@ -40,16 +48,21 @@ function loadStock() {
     }
 
     try {
+
         return JSON.parse(
             fs.readFileSync(DB_FILE, "utf8")
         );
+
     } catch (error) {
-        console.error("Gagal membaca stock.json");
+
+        console.error("❌ stock.json rusak. Menggunakan stock awal.");
+
         return initialStock;
     }
 }
 
 function saveStock(stock) {
+
     fs.writeFileSync(
         DB_FILE,
         JSON.stringify(stock, null, 2)
@@ -58,7 +71,12 @@ function saveStock(stock) {
 
 let products = loadStock();
 
+// ========================================
+// HELPER
+// ========================================
+
 function findProduct(name) {
+
     return products.find(
         product =>
             product.name.toLowerCase() ===
@@ -67,46 +85,83 @@ function findProduct(name) {
 }
 
 function formatStock() {
-    let message = "STOCK TERKINI\n";
-    message += "====================\n";
 
-    let total = 0;
+    let message =
+        "📦 STOCK TERKINI\n" +
+        "━━━━━━━━━━━━━━━━━━\n";
+
+    let totalItems = 0;
 
     for (const product of products) {
-        message +=
-            product.name +
-            " : " +
-            product.stock +
-            " pcs\n";
 
-        total += product.stock;
+        let status = "";
+
+        if (product.stock === 0) {
+            status = " ❌ HABIS";
+        } else if (product.stock <= 3) {
+            status = " ⚠️";
+        }
+
+        message +=
+            `• ${product.name} : ${product.stock} ${product.unit}${status}\n`;
+
+        totalItems += product.stock;
     }
 
-    message += "====================\n";
-    message += "TOTAL STOCK: " + total + " pcs";
+    message +=
+        "━━━━━━━━━━━━━━━━━━\n" +
+        `📊 TOTAL STOCK: ${totalItems} unit`;
 
     return message;
 }
 
+// ========================================
+// START
+// ========================================
+
 bot.onText(/^\/start$/, (msg) => {
 
-    const welcome =
-        "STOCK BOT AKTIF!\n\n" +
-        "COMMAND:\n\n" +
+    const message =
+        "🤖 STOCK BOT AKTIF!\n\n" +
+
+        "📦 COMMAND:\n\n" +
+
         "/stock\n" +
         "Lihat semua stock.\n\n" +
+
         "/terjual Nama Barang Jumlah\n" +
-        "Kurangi stock.\n\n" +
+        "Kurangi stock barang.\n\n" +
+
         "/tambah Nama Barang Jumlah\n" +
-        "Tambah stock.\n\n" +
+        "Tambah stock barang.\n\n" +
+
+        "/tambah Nama Barang Jumlah unit\n" +
+        "Tambah barang baru.\n\n" +
+
+        "/hapus Nama Barang\n" +
+        "Hapus barang dari daftar.\n\n" +
+
         "/set Nama Barang Jumlah\n" +
         "Atur stock langsung.\n\n" +
-        "Bisa juga bahasa biasa:\n\n" +
-        "keripik tempe terjual 2";
 
-    bot.sendMessage(msg.chat.id, welcome);
+        "💡 Contoh:\n" +
+        "/terjual USUS NGEHE 2\n\n" +
 
+        "/tambah USUS NGEHE 5\n\n" +
+
+        "/tambah INDOMIE GORENG 10 pcs\n\n" +
+
+        "/hapus POPMIE";
+
+    bot.sendMessage(
+        msg.chat.id,
+        message
+    );
 });
+
+// ========================================
+// STOCK
+// ========================================
 
 bot.onText(/^\/stock$/, (msg) => {
 
@@ -117,24 +172,31 @@ bot.onText(/^\/stock$/, (msg) => {
 
 });
 
+// ========================================
+// TERJUAL
+// ========================================
+
 bot.onText(/^\/terjual (.+) (\d+)$/i, (msg, match) => {
 
     const productName = match[1].trim();
     const amount = parseInt(match[2]);
 
-    const product = findProduct(productName);
+    if (amount <= 0) {
 
-    if (!product) {
         return bot.sendMessage(
             msg.chat.id,
-            "Barang \"" + productName + "\" tidak ditemukan."
+            "❌ Jumlah harus lebih dari 0."
         );
     }
 
-    if (amount <= 0) {
+    const product = findProduct(productName);
+
+    if (!product) {
+
         return bot.sendMessage(
             msg.chat.id,
-            "Jumlah harus lebih dari 0."
+            `❌ Barang "${productName}" tidak ditemukan.\n\n` +
+            `Gunakan /tambah untuk membuat barang baru.`
         );
     }
 
@@ -142,12 +204,11 @@ bot.onText(/^\/terjual (.+) (\d+)$/i, (msg, match) => {
 
         return bot.sendMessage(
             msg.chat.id,
-            "STOCK TIDAK CUKUP!\n\n" +
-            product.name + "\n" +
-            "Stock sekarang : " + product.stock + "\n" +
-            "Terjual        : " + amount
+            `⚠️ STOCK TIDAK CUKUP!\n\n` +
+            `📦 ${product.name}\n` +
+            `Stock sekarang : ${product.stock} ${product.unit}\n` +
+            `Diminta        : ${amount} ${product.unit}`
         );
-
     }
 
     const oldStock = product.stock;
@@ -157,62 +218,139 @@ bot.onText(/^\/terjual (.+) (\d+)$/i, (msg, match) => {
     saveStock(products);
 
     let message =
-        "STOCK UPDATED\n\n" +
-        product.name + "\n" +
-        "Sebelum : " + oldStock + "\n" +
-        "Terjual : " + amount + "\n" +
-        "Sisa    : " + product.stock;
+        `✅ STOCK UPDATED\n\n` +
+        `📦 ${product.name}\n` +
+        `Sebelum : ${oldStock} ${product.unit}\n` +
+        `Terjual : ${amount} ${product.unit}\n` +
+        `Sisa    : ${product.stock} ${product.unit}`;
 
     if (product.stock === 0) {
-        message += "\n\nSTOCK HABIS!";
+
+        message += "\n\n🚨 STOCK HABIS!";
+
     } else if (product.stock <= 3) {
-        message += "\n\nLOW STOCK!";
+
+        message += "\n\n⚠️ LOW STOCK!";
     }
 
     bot.sendMessage(
         msg.chat.id,
         message
     );
-
 });
 
-bot.onText(/^\/tambah (.+) (\d+)$/i, (msg, match) => {
+// ========================================
+// TAMBAH STOCK / BARANG BARU
+// ========================================
+
+bot.onText(/^\/tambah (.+) (\d+)(?: (pcs|box|pack|dus|karton|botol|bungkus))?$/i, (msg, match) => {
 
     const productName = match[1].trim();
     const amount = parseInt(match[2]);
 
-    const product = findProduct(productName);
-
-    if (!product) {
-        return bot.sendMessage(
-            msg.chat.id,
-            "Barang \"" + productName + "\" tidak ditemukan."
-        );
-    }
+    let unit = match[3]
+        ? match[3].toLowerCase()
+        : null;
 
     if (amount <= 0) {
+
         return bot.sendMessage(
             msg.chat.id,
-            "Jumlah harus lebih dari 0."
+            "❌ Jumlah harus lebih dari 0."
         );
     }
 
-    const oldStock = product.stock;
+    const product = findProduct(productName);
 
-    product.stock += amount;
+    // ========================================
+    // BARANG SUDAH ADA
+    // ========================================
+
+    if (product) {
+
+        const oldStock = product.stock;
+
+        product.stock += amount;
+
+        saveStock(products);
+
+        return bot.sendMessage(
+            msg.chat.id,
+            `✅ STOCK DITAMBAH\n\n` +
+            `📦 ${product.name}\n` +
+            `Sebelum : ${oldStock} ${product.unit}\n` +
+            `Masuk   : ${amount} ${product.unit}\n` +
+            `Sekarang: ${product.stock} ${product.unit}`
+        );
+    }
+
+    // ========================================
+    // BARANG BARU
+    // ========================================
+
+    if (!unit) {
+        unit = "pcs";
+    }
+
+    const newProduct = {
+        name: productName,
+        stock: amount,
+        unit: unit
+    };
+
+    products.push(newProduct);
 
     saveStock(products);
 
     bot.sendMessage(
         msg.chat.id,
-        "STOCK DITAMBAH\n\n" +
-        product.name + "\n" +
-        "Sebelum  : " + oldStock + "\n" +
-        "Masuk    : " + amount + "\n" +
-        "Sekarang : " + product.stock
+        `🆕 BARANG BARU DITAMBAHKAN!\n\n` +
+        `📦 ${productName}\n` +
+        `Stock : ${amount} ${unit}\n\n` +
+        `Gunakan /stock untuk melihat daftar terbaru.`
+    );
+});
+
+// ========================================
+// HAPUS BARANG
+// ========================================
+
+bot.onText(/^\/hapus (.+)$/i, (msg, match) => {
+
+    const productName = match[1].trim();
+
+    const index = products.findIndex(
+        product =>
+            product.name.toLowerCase() ===
+            productName.toLowerCase()
     );
 
+    if (index === -1) {
+
+        return bot.sendMessage(
+            msg.chat.id,
+            `❌ Barang "${productName}" tidak ditemukan.`
+        );
+    }
+
+    const removedProduct = products[index];
+
+    products.splice(index, 1);
+
+    saveStock(products);
+
+    bot.sendMessage(
+        msg.chat.id,
+        `🗑️ BARANG DIHAPUS\n\n` +
+        `📦 ${removedProduct.name}\n` +
+        `Stock terakhir : ${removedProduct.stock} ${removedProduct.unit}\n\n` +
+        `Barang sudah dihapus dari daftar stock.`
+    );
 });
+
+// ========================================
+// SET STOCK
+// ========================================
 
 bot.onText(/^\/set (.+) (\d+)$/i, (msg, match) => {
 
@@ -222,16 +360,10 @@ bot.onText(/^\/set (.+) (\d+)$/i, (msg, match) => {
     const product = findProduct(productName);
 
     if (!product) {
-        return bot.sendMessage(
-            msg.chat.id,
-            "Barang \"" + productName + "\" tidak ditemukan."
-        );
-    }
 
-    if (amount < 0) {
         return bot.sendMessage(
             msg.chat.id,
-            "Jumlah tidak boleh minus."
+            `❌ Barang "${productName}" tidak ditemukan.`
         );
     }
 
@@ -243,13 +375,16 @@ bot.onText(/^\/set (.+) (\d+)$/i, (msg, match) => {
 
     bot.sendMessage(
         msg.chat.id,
-        "STOCK DISET\n\n" +
-        product.name + "\n" +
-        "Sebelum  : " + oldStock + "\n" +
-        "Sekarang : " + amount
+        `✅ STOCK DISET\n\n` +
+        `📦 ${product.name}\n` +
+        `Sebelum : ${oldStock} ${product.unit}\n` +
+        `Sekarang: ${amount} ${product.unit}`
     );
-
 });
+
+// ========================================
+// BAHASA BIASA
+// ========================================
 
 bot.on("message", (msg) => {
 
@@ -257,6 +392,7 @@ bot.on("message", (msg) => {
 
     const text = msg.text.trim();
 
+    // Abaikan command
     if (text.startsWith("/")) return;
 
     const match =
@@ -270,16 +406,10 @@ bot.on("message", (msg) => {
     const product = findProduct(productName);
 
     if (!product) {
-        return bot.sendMessage(
-            msg.chat.id,
-            "Barang \"" + productName + "\" tidak ditemukan."
-        );
-    }
 
-    if (amount <= 0) {
         return bot.sendMessage(
             msg.chat.id,
-            "Jumlah harus lebih dari 0."
+            `❌ Barang "${productName}" tidak ditemukan.`
         );
     }
 
@@ -287,12 +417,11 @@ bot.on("message", (msg) => {
 
         return bot.sendMessage(
             msg.chat.id,
-            "STOCK TIDAK CUKUP!\n\n" +
-            product.name + "\n" +
-            "Stock sekarang : " + product.stock + "\n" +
-            "Terjual        : " + amount
+            `⚠️ STOCK TIDAK CUKUP!\n\n` +
+            `📦 ${product.name}\n` +
+            `Stock sekarang : ${product.stock} ${product.unit}\n` +
+            `Terjual        : ${amount} ${product.unit}`
         );
-
     }
 
     const oldStock = product.stock;
@@ -302,26 +431,32 @@ bot.on("message", (msg) => {
     saveStock(products);
 
     let message =
-        "STOCK UPDATED\n\n" +
-        product.name + "\n" +
-        "Sebelum : " + oldStock + "\n" +
-        "Terjual : " + amount + "\n" +
-        "Sisa    : " + product.stock;
+        `✅ STOCK UPDATED\n\n` +
+        `📦 ${product.name}\n` +
+        `Sebelum : ${oldStock} ${product.unit}\n` +
+        `Terjual : ${amount} ${product.unit}\n` +
+        `Sisa    : ${product.stock} ${product.unit}`;
 
     if (product.stock === 0) {
-        message += "\n\nSTOCK HABIS!";
+
+        message += "\n\n🚨 STOCK HABIS!";
+
     } else if (product.stock <= 3) {
-        message += "\n\nLOW STOCK!";
+
+        message += "\n\n⚠️ LOW STOCK!";
     }
 
     bot.sendMessage(
         msg.chat.id,
         message
     );
-
 });
 
-console.log("==============================");
-console.log("STOCK BOT AKTIF!");
-console.log("Database: stock.json");
-console.log("==============================");
+// ========================================
+// BOT READY
+// ========================================
+
+console.log("================================");
+console.log("🤖 STOCK BOT AKTIF!");
+console.log("📦 Database: stock.json");
+console.log("================================");

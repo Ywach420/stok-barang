@@ -1,42 +1,42 @@
 [
   {
-    "name": "Keripik Tempe",
-    "stock": 1
+    "name": "POPMIE",
+    "stock": 0,
+    "unit": "pcs"
   },
   {
-    "name": "Singkong Balado Basah",
-    "stock": 3
+    "name": "SARI GANDUM COKLAT",
+    "stock": 6,
+    "unit": "pcs"
   },
   {
-    "name": "Basreng Asin",
-    "stock": 4
+    "name": "MOMOGI MINI",
+    "stock": 1,
+    "unit": "box"
   },
   {
-    "name": "Kerupuk Seblak Kencur",
-    "stock": 2
+    "name": "MAKARONI NGEHE",
+    "stock": 0,
+    "unit": "pcs"
   },
   {
-    "name": "Emping Melinjo Pedas",
-    "stock": 1
+    "name": "USUS NGEHE",
+    "stock": 3,
+    "unit": "pcs"
   },
   {
-    "name": "Keripik Ubi Ungu",
-    "stock": 1
+    "name": "SAUS ABC EXTRA PEDAS 275ml",
+    "stock": 4,
+    "unit": "pcs"
   },
   {
-    "name": "Jagung Marning",
-    "stock": 1
+    "name": "SAUS INDOFOOD EXTRA PEDAS 275ml",
+    "stock": 5,
+    "unit": "pcs"
   },
   {
-    "name": "Roti Bagelan Keju",
-    "stock": 1
-  },
-  {
-    "name": "Roti Bagelan Pandan",
-    "stock": 2
-  },
-  {
-    "name": "Popmie Kuah Pedes Dower",
-    "stock": 22
+    "name": "SAUS BELIBIS EXTRA PEDAS 235ml",
+    "stock": 3,
+    "unit": "pcs"
   }
 ]
